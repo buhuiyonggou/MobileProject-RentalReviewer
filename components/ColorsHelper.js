@@ -1,7 +1,15 @@
 export default {
+  white: "white",
+  white2: "#fff",
+  black: "black",
+  gray: "gray",
+  lightgrey: "lightgrey",
+  lightgrey2: "#D4D7D7",
+  red: "red",
   headers: "#067CAB",
   activeTintColor: "#d5b531",
-  buttonDefault: "#639bdc",
+  buttonOnBoard: "#639bdc",
+  buttonDefault: "#8E8F90",
   inactiveTintColor: "#a9b2cc",
   logout: "black",
   tintColor: "white",
@@ -9,4 +17,5 @@ export default {
   cardBackGround2: "#F8FCFD",
   inputBackGround: "#cdd5dd",
   headerRight: "transparent",
+  backgroundColor: "rgba(255,255,255,0.7)",
 };

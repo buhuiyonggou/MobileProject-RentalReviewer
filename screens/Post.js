@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import React, { useEffect } from "react";
 import { useState } from "react";
@@ -17,7 +18,7 @@ import {
 import ImageManager from "../components/ImageManager";
 import { Dropdown } from "react-native-element-dropdown";
 import { ref, uploadBytesResumable } from "firebase/storage";
-import { storage } from "../Firebase/firebase-setup";
+import { storage, auth } from "../Firebase/firebase-setup";
 import { AntDesign } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Entypo } from "@expo/vector-icons";
@@ -41,6 +42,7 @@ export default function PostReview(props) {
   const [location, setLocation] = useState(null);
   const [getReviewId, setReviewId] = useState(null);
   const [resetLocation, setResetLocation] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const validatePost = () => {
     if (
@@ -111,6 +113,8 @@ export default function PostReview(props) {
       return;
     }
 
+    setIsLoading(true);
+
     let imageURLs = [];
     for (let uri of imageUri) {
       const imageURL = await uploadImages({ images: uri });
@@ -162,13 +166,15 @@ export default function PostReview(props) {
         "An error occurred while submitting. Please try again."
       );
     }
+    setIsLoading(false);
   };
 
   return (
     <ScrollView style={styles.scrollContainer}>
       <View>
         <Text style={styles.text}>
-          Address<Text style={{ color: "red", fontSize: 20 }}>*</Text>
+          Address
+          <Text style={{ color: ColorsHelper.red, fontSize: 20 }}>*</Text>
         </Text>
         <TextInput
           style={styles.input}
@@ -183,7 +189,6 @@ export default function PostReview(props) {
           <LocationManager
             handleLocationUpdate={handleLocationUpdate}
             resetSignal={resetLocation}
-            reviewId={getReviewId}
           />
         </View>
       </View>
@@ -191,7 +196,8 @@ export default function PostReview(props) {
       <View style={styles.block2}>
         <View style={styles.postCode}>
           <Text style={styles.text}>
-            Postal Code<Text style={{ color: "red", fontSize: 20 }}>*</Text>
+            Postal Code
+            <Text style={{ color: ColorsHelper.red, fontSize: 20 }}>*</Text>
           </Text>
           <TextInput
             style={styles.input}
@@ -202,7 +208,7 @@ export default function PostReview(props) {
         </View>
         <View style={styles.city}>
           <Text style={styles.text}>
-            City<Text style={{ color: "red", fontSize: 20 }}>*</Text>
+            City<Text style={{ color: ColorsHelper.red, fontSize: 20 }}>*</Text>
           </Text>
           <TextInput
             style={styles.input}
@@ -216,7 +222,8 @@ export default function PostReview(props) {
       <View style={styles.block3}>
         <View style={styles.unit}>
           <Text style={styles.text}>
-            UnitType<Text style={{ color: "red", fontSize: 20 }}>*</Text>
+            UnitType
+            <Text style={{ color: ColorsHelper.red, fontSize: 20 }}>*</Text>
           </Text>
           <TextInput
             style={styles.input}
@@ -228,7 +235,7 @@ export default function PostReview(props) {
         <View style={styles.rental}>
           <Text style={styles.text}>
             Monthly Rental $
-            <Text style={{ color: "red", fontSize: 20 }}>*</Text>
+            <Text style={{ color: ColorsHelper.red, fontSize: 20 }}>*</Text>
           </Text>
           <TextInput
             style={styles.input}
@@ -283,7 +290,8 @@ export default function PostReview(props) {
         <View style={styles.rating}>
           <AntDesign style={styles.icon} color="black" name="staro" size={20} />
           <Text style={styles.ratingText}>
-            Rating<Text style={{ color: "red", fontSize: 20 }}>*</Text>
+            Rating
+            <Text style={{ color: ColorsHelper.red, fontSize: 20 }}>*</Text>
           </Text>
         </View>
         <Dropdown
@@ -308,7 +316,8 @@ export default function PostReview(props) {
 
       <View style={styles.block7}>
         <Text style={styles.text}>
-          Comment<Text style={{ color: "red", fontSize: 20 }}>*</Text>
+          Comment
+          <Text style={{ color: ColorsHelper.red, fontSize: 20 }}>*</Text>
         </Text>
         <TextInput
           style={styles.commentInput}
@@ -339,6 +348,14 @@ export default function PostReview(props) {
           <Text style={styles.buttonText}>Submit</Text>
         </PressableButton>
       </View>
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator
+            size="large"
+            color={ColorsHelper.inactiveTintColor}
+          />
+        </View>
+      )}
       <View style={styles.idleSpace}></View>
     </ScrollView>
   );
@@ -355,7 +372,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "#000",
+    borderColor: ColorsHelper.black,
     padding: 10,
     borderRadius: 5,
     width: "100%",
@@ -366,6 +383,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     margin: 10,
     height: 320,
+    marginBottom: 20,
   },
   map: {
     width: "90%",
@@ -415,19 +433,19 @@ const styles = StyleSheet.create({
     margin: 5,
     height: 40,
     borderRadius: 5,
-    borderBottomColor: "gray",
+    borderBottomColor: ColorsHelper.gray,
     borderBottomWidth: 0.8,
   },
   dropdownRating: {
     margin: 5,
     height: 40,
     borderRadius: 5,
-    borderBottomColor: "gray",
+    borderBottomColor: ColorsHelper.gray,
     borderBottomWidth: 0.8,
     width: "70%",
   },
   placeholderStyle: {
-    color: "gray",
+    color: ColorsHelper.gray,
     textAlign: "center",
   },
   selectedTextStyle: {
@@ -452,12 +470,12 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   block7: {
-    marginTop: 20,
+    marginTop: 50,
     marginBottom: 10,
   },
   commentInput: {
     borderWidth: 1,
-    borderColor: "#000",
+    borderColor: ColorsHelper.black,
     padding: 10,
     borderRadius: 5,
     paddingTop: 10,
@@ -469,10 +487,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     marginBottom: 30,
+    marginTop: 50,
   },
   buttonText: {
     fontSize: 14,
-    color: "#fff",
+    color: ColorsHelper.white,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: ColorsHelper.backgroundColor,
+    justifyContent: "center",
+    alignItems: "center",
   },
   idleSpace: {
     height: 300,

@@ -14,6 +14,7 @@ import { updatePassword } from "firebase/auth";
 import PressableButton from "../components/PressableButton";
 import { updateUser } from "../Firebase/firestoreHelper";
 import EdiableReviews from "../components/EdiableReviews";
+import ColorsHelper from "../components/ColorsHelper";
 
 const Me = ({ navigation }) => {
   //user and review info from firebase
@@ -111,6 +112,9 @@ const Me = ({ navigation }) => {
           Alert.alert("Password cannot be empty. Please try again.");
         }
       } catch (error) {
+        Alert.alert(
+          "Due to security policy, I may need re-login and change your password."
+        );
         console.error("Error updating password:", error);
       }
     }
@@ -145,7 +149,7 @@ const Me = ({ navigation }) => {
           ) : (
             <TextInput
               style={styles.inputArea}
-              placeholder="Please enter your NickName"
+              placeholder="Enter NickName"
               value={nickName}
               onChangeText={(text) => setNickName(text)}
             />
@@ -176,7 +180,7 @@ const Me = ({ navigation }) => {
           ) : (
             <TextInput
               style={styles.inputArea}
-              placeholder="Please enter your Gender"
+              placeholder="Female / Male"
               value={gender}
               onChangeText={(text) => setGender(text)}
             />
@@ -202,22 +206,22 @@ const Me = ({ navigation }) => {
 
         <View style={styles.dateOfBirth}>
           <Text style={styles.textLabel}>Date of Birth: </Text>
-
           {!editDateOfBirth ? (
             <Text>{dateOfBirth}</Text>
           ) : (
             <TextInput
               style={styles.inputArea}
-              placeholder="Date of Birth (YYYY-MM-DD)"
+              placeholder={dateWarning ? "Invalid, YYYY-MM-DD" : "YYYY-MM-DD"}
+              placeholderTextColor={dateWarning ? "red" : "grey"}
               value={dateOfBirth}
-              onChangeText={(text) => setDateOfBirth(text)}
+              onChangeText={(text) => {
+                setDateOfBirth(text);
+                if (dateWarning) {
+                  // Clear warning once user starts typing again
+                  setDateWarning(false);
+                }
+              }}
             />
-          )}
-
-          {dateWarning && (
-            <Text style={{ color: "red" }}>
-              Invalid Date Format! Please use YYYY-MM-DD.
-            </Text>
           )}
 
           {!editDateOfBirth ? (
@@ -232,9 +236,9 @@ const Me = ({ navigation }) => {
             <PressableButton
               pressableFunction={() => {
                 if (!dateRegex.test(dateOfBirth)) {
-                  setDateWarning(true);
+                  setDateOfBirth(""); // Clear the input
+                  setDateWarning(true); // Display warning in the placeholder
                 } else {
-                  setDateWarning(false);
                   handleUserInfoEdit({ dateOfBirth }, setEditDateOfBirth);
                 }
               }}
@@ -250,7 +254,7 @@ const Me = ({ navigation }) => {
           ) : (
             <TextInput
               style={styles.inputArea}
-              placeholder="Please enter your new Password"
+              placeholder="New Password"
               value={password}
               secureTextEntry={true}
               onChangeText={(text) => setPassword(text)}
@@ -333,7 +337,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   inputArea: {
-    backgroundColor: "lightgrey",
+    backgroundColor: ColorsHelper.lightgrey,
     textAlign: "center",
     width: "40%",
     height: "100%",
@@ -346,14 +350,15 @@ const styles = StyleSheet.create({
   buttonDescription: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "white",
+    color: ColorsHelper.white,
   },
   header: {
     fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 20,
-    marginTop: 20,
+    marginBottom: 30,
+    marginTop: 50,
     textAlign: "center",
+    color: ColorsHelper.black,
   },
   postTitleContainer: {
     flex: 1,

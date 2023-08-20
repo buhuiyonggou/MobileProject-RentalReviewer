@@ -30,7 +30,7 @@ export default function ImageManager({ storeImageUri, reset, setIsReset }) {
 
   async function verifyCameraPermission() {
     try {
-      if (cameraPermissionInfo) {
+      if (cameraPermissionInfo.granted) {
         return true;
       }
 
@@ -44,7 +44,7 @@ export default function ImageManager({ storeImageUri, reset, setIsReset }) {
         );
         return false;
       }
-      return true;
+      return responseCamera.granted;
     } catch (err) {
       console.log("Permission Error from camera/local gallery", err);
     }
@@ -66,7 +66,7 @@ export default function ImageManager({ storeImageUri, reset, setIsReset }) {
         );
         return false;
       }
-      return true;
+      return responseGallery.granted;
     } catch (err) {
       console.log("Permission Error from camera/local gallery", err);
     }
@@ -129,7 +129,7 @@ export default function ImageManager({ storeImageUri, reset, setIsReset }) {
       <View style={styles.takeImages}>
         <Text style={styles.text}>
           Take images
-          <Text style={{ color: "red", fontSize: 20 }}>*</Text>
+          <Text style={{ color: ColorsHelper.red, fontSize: 20 }}>*</Text>
         </Text>
         {imageUri.length < 9 && (
           <View style={styles.icons}>
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     width: imageSize,
     margin: 5,
     borderWidth: 1,
-    borderColor: "gray",
+    borderColor: ColorsHelper.gray,
     borderRadius: 6,
   },
 });

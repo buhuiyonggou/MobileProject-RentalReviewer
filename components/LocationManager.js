@@ -1,16 +1,15 @@
-import { View, Button, Alert, Image, Dimensions } from "react-native";
+import { View, Text, Alert, Image, StyleSheet, Dimensions } from "react-native";
 import React, { useEffect, useState } from "react";
 import * as Location from "expo-location";
 import { MAPS_API_KEY } from "@env";
 import { useNavigation } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
 import { getReviewInfo } from "../Firebase/firestoreHelper";
+import ColorsHelper from "./ColorsHelper";
+import PressableButton from "./PressableButton";
 
-export default function LocationManager({
-  handleLocationUpdate,
-  reviewId,
-  resetSignal,
-}) {
+const screenWidth = Dimensions.get("window").width;
+export default function LocationManager({ handleLocationUpdate, resetSignal }) {
   const [location, setLocation] = useState(null);
 
   const navigation = useNavigation();
@@ -19,22 +18,6 @@ export default function LocationManager({
   useEffect(() => {
     setLocation(null);
   }, [resetSignal]);
-
-  useEffect(() => {
-    async function getReviewLocation() {
-      try {
-        if (reviewId) {
-          const storedLocation = await getReviewInfo(reviewId);
-          setLocation(storedLocation);
-        } else {
-          console.log("reviewId is not defined!");
-        }
-      } catch (err) {
-        console.log("get user location from databse ", err);
-      }
-    }
-    getReviewLocation();
-  }, []);
 
   useEffect(() => {
     if (route.params) {
@@ -86,12 +69,37 @@ export default function LocationManager({
 
   const saveLocationHandler = () => {
     handleLocationUpdate(location);
+    Alert.alert("Location saved");
   };
 
   return (
     <View>
-      <Button title="Locate User" onPress={locateUserHandler} />
-      <Button title="Let me choose my location" onPress={mapHandler} />
+      <View style={styles.buttonContainer}>
+        <PressableButton
+          pressableFunction={locateUserHandler}
+          defaultStyle={styles.linkButton}
+          pressedStyle={{
+            backgroundColor: ColorsHelper.buttonPressed,
+            opacity: 0.5,
+          }}
+        >
+          <Text style={styles.buttonText}>
+            Get location to explore walkscore
+          </Text>
+        </PressableButton>
+
+        <PressableButton
+          pressableFunction={mapHandler}
+          defaultStyle={styles.linkButton}
+          pressedStyle={{
+            backgroundColor: ColorsHelper.buttonPressed,
+            opacity: 0.5,
+          }}
+        >
+          <Text style={styles.buttonText}>Choose your location </Text>
+        </PressableButton>
+      </View>
+
       {location && (
         <Image
           source={{
@@ -100,11 +108,44 @@ export default function LocationManager({
           style={{ width: "100%", height: 200 }}
         />
       )}
-      <Button
-        disabled={!location}
-        title="Save My Location"
-        onPress={saveLocationHandler}
-      />
+
+      <View style={styles.buttonContainer}>
+        <PressableButton
+          pressableFunction={location ? saveLocationHandler : null}
+          defaultStyle={styles.linkButton}
+          pressedStyle={{
+            backgroundColor: ColorsHelper.buttonPressed,
+            opacity: 0.5,
+          }}
+        >
+          <Text
+            style={
+              location
+                ? styles.buttonText
+                : { color: ColorsHelper.lightgrey, fontSize: 20 }
+            }
+          >
+            Save My Location
+          </Text>
+        </PressableButton>
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  buttonContainer: {
+    flexDirection: "column",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  linkButton: {
+    backgroundColor: ColorsHelper.transparent,
+    width: screenWidth * 0.9,
+    margin: 5,
+  },
+  buttonText: {
+    fontSize: 20,
+    color: ColorsHelper.headers,
+  },
+});

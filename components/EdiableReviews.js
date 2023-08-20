@@ -1,7 +1,5 @@
 import { StyleSheet, Text, View, TextInput } from "react-native";
 import React, { useState, useEffect } from "react";
-// import { storage } from "../Firebase/firebase-setup";
-// import { ref, getDownloadURL } from "firebase/storage";
 import { doc, getDoc } from "firebase/firestore";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { Image } from "react-native";
@@ -53,7 +51,7 @@ export default function EdiableReviews({ reviewData, navigation, onDelete }) {
           setRating(review.rating);
           setComment(review.comment);
           setFavorite(review.favorite);
-          setIsReviewPublic(review.isReviewPublic);
+          setIsReviewPublic(review.isVisible);
         } else {
           console.log("No such document!");
         }
@@ -63,7 +61,7 @@ export default function EdiableReviews({ reviewData, navigation, onDelete }) {
     };
 
     fetchCurrentReview();
-  }, []);
+  }, [reviewData]);
 
   //fetch comments created by current user
   useEffect(() => {
@@ -80,17 +78,13 @@ export default function EdiableReviews({ reviewData, navigation, onDelete }) {
           ...doc.data(),
         }));
         setComment(getComments);
-        // console.log(
-        //   "src EdiableReviews, get Comments from firebase",
-        //   getComments
-        // );
       } catch (error) {
         console.log("Error fetching reviews:", error);
       }
     };
 
     fetchComments();
-  }, []);
+  }, [reviewData]);
 
   //update review info
   async function handleReviewsInfoEdit(
@@ -115,7 +109,7 @@ export default function EdiableReviews({ reviewData, navigation, onDelete }) {
   async function handleReviewVisibility(reviewData, toggleEditFunction) {
     try {
       await updateReview(reviewData.id, {
-        isReviewPublic: !isReviewPublic,
+        isVisible: !isReviewPublic,
       });
       toggleEditFunction((prevState) => !prevState);
     } catch (error) {
@@ -315,7 +309,7 @@ export default function EdiableReviews({ reviewData, navigation, onDelete }) {
             pressableFunction={() => reviewPressedToDetail(reviewData, images)}
             pressedStyle={styles.buttonPressed}
             defaultStyle={{
-              backgroundColor: "transparent",
+              backgroundColor: ColorsHelper.headerRight,
               marginBottom: 10,
               width: 150,
               marginBottom: 0,
@@ -362,7 +356,7 @@ export default function EdiableReviews({ reviewData, navigation, onDelete }) {
               );
             }
           }}
-          pressedStyle={{ backgroundColor: "red", opacity: 0.5 }}
+          pressedStyle={{ backgroundColor: ColorsHelper.red, opacity: 0.5 }}
           defaultStyle={styles.toggleOn}
         >
           <Text style={styles.buttonDescription}>
@@ -415,7 +409,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 14,
-    color: "#fff",
+    color: ColorsHelper.white,
   },
   EdiableInfoContainer: {
     width: "100%",
@@ -439,11 +433,12 @@ const styles = StyleSheet.create({
   buttonDescription: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "white",
+    color: ColorsHelper.white,
   },
   buttonDetail: {
     fontSize: 16,
-    color: "blue",
+    color: ColorsHelper.headers,
+    // fontWeight: "bold",
   },
   buttonPressed: {
     backgroundColor: ColorsHelper.buttonPressed,
@@ -453,10 +448,10 @@ const styles = StyleSheet.create({
     backgroundColor: ColorsHelper.buttonDefault,
   },
   toggleOn: {
-    backgroundColor: "red",
+    backgroundColor: ColorsHelper.red,
   },
   inputArea: {
-    backgroundColor: "lightgrey",
+    backgroundColor: ColorsHelper.lightgrey,
     textAlign: "center",
     width: "40%",
     height: "100%",
@@ -465,12 +460,12 @@ const styles = StyleSheet.create({
   dropdownRating: {
     height: 20,
     borderRadius: 6,
-    borderBottomColor: "gray",
+    borderBottomColor: ColorsHelper.gray,
     borderBottomWidth: 0.9,
     width: "40%",
   },
   placeholderStyle: {
-    color: "gray",
+    color: ColorsHelper.gray,
     textAlign: "center",
   },
   selectedTextStyle: {

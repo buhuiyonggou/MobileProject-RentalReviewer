@@ -1,6 +1,8 @@
-import { Button } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import PressableButton from "../components/PressableButton";
 import React, { useEffect, useState } from "react";
 import MapView, { Marker } from "react-native-maps";
+import ColorsHelper from "../components/ColorsHelper";
 
 export default function Map({ navigation, route }) {
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -12,7 +14,6 @@ export default function Map({ navigation, route }) {
   }, [route]);
 
   function confirmLocationHandler() {
-    // navigation.navigate("Detail", { selectedLocation: selectedLocation });
     navigation.navigate("Post", { selectedLocation: selectedLocation });
   }
   return (
@@ -34,11 +35,44 @@ export default function Map({ navigation, route }) {
       >
         {selectedLocation && <Marker coordinate={selectedLocation} />}
       </MapView>
-      <Button
-        disabled={!selectedLocation}
-        title="Confirm Selected Location"
-        onPress={confirmLocationHandler}
-      />
+
+      <View style={styles.buttonContainer}>
+        <PressableButton
+          pressableFunction={selectedLocation ? confirmLocationHandler : null}
+          defaultStyle={styles.linkButton}
+          pressedStyle={{
+            backgroundColor: ColorsHelper.buttonPressed,
+            opacity: 0.5,
+          }}
+        >
+          <Text
+            style={
+              selectedLocation
+                ? styles.buttonText
+                : { color: ColorsHelper.lightgrey, fontSize: 20 }
+            }
+          >
+            Confirm Selected Location
+          </Text>
+        </PressableButton>
+      </View>
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  buttonContainer: {
+    flexDirection: "column",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  linkButton: {
+    backgroundColor: ColorsHelper.transparent,
+    width: "90%",
+    margin: 5,
+  },
+  buttonText: {
+    fontSize: 20,
+    color: ColorsHelper.headers,
+  },
+});

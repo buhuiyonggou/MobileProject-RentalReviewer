@@ -1,7 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
 import React, { useState, useEffect } from "react";
-// import { storage } from "../Firebase/firebase-setup";
-// import { ref, getDownloadURL } from "firebase/storage";
 import { Image } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { downloadImages } from "./DownLoadImages";
@@ -43,17 +41,17 @@ export default function ReviewItem({ reviewData, navigation }) {
       <View style={styles.infoContainer}>
         <View style={styles.infoDisplay}>
           <Ionicons name="bed" size={15} />
-          <Text style={styles.text}>Unit:{reviewData.unitType}</Text>
+          <Text style={styles.text}> Unit: {reviewData.unitType}</Text>
         </View>
 
         <View style={styles.infoDisplay}>
           <Ionicons style={styles.icon} name="home" size={15} />
-          <Text style={styles.text}>Address:{reviewData.address}</Text>
+          <Text style={styles.text}>Address: {reviewData.address}</Text>
         </View>
 
         <View style={styles.infoDisplay}>
           <MaterialIcons name="star-rate" size={15} />
-          <Text style={styles.text}>Rating:{reviewData.rating}</Text>
+          <Text style={styles.text}> Rating: {reviewData.rating}</Text>
         </View>
 
         <PressableButton
@@ -72,12 +70,13 @@ export default function ReviewItem({ reviewData, navigation }) {
 
 const styles = StyleSheet.create({
   exploreContainer: {
-    // flex: 1,
-    padding: 10,
+    padding: 20,
     alignItems: "center",
-    borderWidth: 1,
+    borderWidth: 3,
+    borderColor: ColorsHelper.lightgrey2,
+    borderRadius: 5,
     width: 330,
-    marginBottom: 15,
+    marginBottom: 25,
   },
   imageContainer: {
     width: "100%",
@@ -91,7 +90,6 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     width: "100%",
-    // borderWidth: 1,
   },
   infoDisplay: {
     flexDirection: "row",
@@ -111,6 +109,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 15,
-    color: "#fff",
+    color: ColorsHelper.white,
   },
 });

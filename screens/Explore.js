@@ -14,9 +14,14 @@ export default function Explore({ navigation }) {
       collection(database, "reviews"),
       (querySnapshot) => {
         if (!querySnapshot.empty) {
-          const newReviews = querySnapshot.docs.map((item) => {
-            return { ...item.data(), id: item.id };
-          });
+          let newReviews = querySnapshot.docs
+            .map((item) => {
+              return { ...item.data(), id: item.id };
+            })
+            .reverse();
+          newReviews = newReviews.filter(
+            (review) => review.isVisible !== false
+          );
           setReviews(newReviews);
         } else {
           setReviews([]);
@@ -61,19 +66,21 @@ export default function Explore({ navigation }) {
 const styles = StyleSheet.create({
   reviewsContainer: {
     flex: 1,
-    backgroundColor: ColorsHelper.cardBackGround2,
+    // backgroundColor: ColorsHelper.cardBackGround2,
+    backgroundColor: ColorsHelper.white,
   },
   scrollViewContent: {
     alignItems: "center",
-    // alignContent: "center",
   },
   introduction: {
     width: "95%",
     margin: 11,
     alignSelf: "center",
+    marginBottom: 30,
   },
   introText: {
     fontSize: 16,
     margin: 5,
+    color: ColorsHelper.headers,
   },
 });

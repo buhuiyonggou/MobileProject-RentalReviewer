@@ -1,10 +1,20 @@
 import { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Alert,
+  Dimensions,
+} from "react-native";
 import { auth } from "../Firebase/firebase-setup";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { addUser } from "../Firebase/firestoreHelper";
+import { registerForPushNotificationsAsync } from "../components/PushNotificationManager";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import PressableButton from "../components/PressableButton";
 import ColorsHelper from "../components/ColorsHelper";
 
+const screenWidth = Dimensions.get("window").width;
 export default function Signup({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,20 +36,30 @@ export default function Signup({ navigation }) {
         password
       );
 
+      const pushToken = await registerForPushNotificationsAsync();
+
+      console.log(pushToken);
+
       await addUser({
         email: email,
         nickName: "",
         gender: "",
         dateOfBirth: "",
         userId: userCred.user.uid,
+        pushToken: pushToken,
       });
 
-      console.log(userCred);
+      Alert.alert("Signup successfully");
     } catch (err) {
       if (err.code === "auth/weak-password") {
         Alert.alert(
           "Please enter a stronger password with at least 6 characters"
         );
+      } else if (err.code === "auth/email-already-in-use") {
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        Alert.alert("This email is already in use");
       } else {
         console.log("signup ", err);
       }
@@ -71,8 +91,32 @@ export default function Signup({ navigation }) {
         value={confirmPassword}
         onChangeText={(newText) => setConfirmPassword(newText)}
       />
-      <Button title="Register" onPress={signupHandler} />
-      <Button title="Already Registered? Login" onPress={loginHandler} />
+
+      <View style={styles.buttonContainer}>
+        <PressableButton
+          pressableFunction={signupHandler}
+          defaultStyle={styles.linkButton}
+          pressedStyle={{
+            backgroundColor: ColorsHelper.buttonPressed,
+            opacity: 0.5,
+          }}
+        >
+          <Text style={styles.buttonText}>Register</Text>
+        </PressableButton>
+
+        <PressableButton
+          pressableFunction={loginHandler}
+          defaultStyle={styles.linkButton}
+          pressedStyle={{
+            backgroundColor: ColorsHelper.buttonPressed,
+            opacity: 0.5,
+          }}
+        >
+          <Text style={styles.buttonText}>Already Registered? Login </Text>
+        </PressableButton>
+      </View>
+      {/* <Button title="Register" onPress={signupHandler} />
+      <Button title="Already Registered? Login" onPress={loginHandler} /> */}
     </View>
   );
 }
@@ -80,7 +124,7 @@ export default function Signup({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: ColorsHelper.white,
     alignItems: "stretch",
     justifyContent: "center",
   },
@@ -99,5 +143,19 @@ const styles = StyleSheet.create({
   label: {
     marginLeft: 25,
     fontSize: 20,
+  },
+  buttonContainer: {
+    flexDirection: "column",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  linkButton: {
+    backgroundColor: ColorsHelper.transparent,
+    width: screenWidth * 0.9,
+  },
+  buttonText: {
+    fontSize: 20,
+    color: ColorsHelper.headers,
+    fontWeight: "bold",
   },
 });

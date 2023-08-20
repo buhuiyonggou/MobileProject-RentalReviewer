@@ -5,35 +5,46 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  Linking,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { Dropdown } from "react-native-element-dropdown";
 import { database } from "../Firebase/firebase-setup";
 import { ratings } from "../components/DropDownData";
 import { doc, onSnapshot } from "firebase/firestore";
-import { collection, query, where } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { addComment } from "../Firebase/firestoreHelper";
 import CommentItem from "../components/CommentItem";
 import ImageCarousel from "../components/ImageCarousel";
 import StarRating from "../components/StarRating";
 import {
+  AntDesign,
   Entypo,
   Ionicons,
   MaterialIcons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { updateReview } from "../Firebase/firestoreHelper";
+import { auth } from "../Firebase/firebase-setup";
 import PressableButton from "../components/PressableButton";
+import { sendCommentReceiveNotification } from "../components/PushNotificationManager";
+import { WALKSCORE_API } from "@env";
+import ColorsHelper from "../components/ColorsHelper";
 
 export default function Detail({ route }) {
   const { review, imageUris } = route.params;
-  const [favorite, setFavorite] = useState(review.favorite);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [favorite, setFavorite] = useState(
+    review.favorite ? review.favorite : 0
+  );
+  const [isFavorite, setIsFavorite] = useState(
+    review.favoritedBy.includes(auth.currentUser.uid)
+  );
   const [newComment, setNewComment] = useState("");
   const [commentRating, setCommentRating] = useState("");
   const [comments, setComments] = useState([]);
 
-  console.log("get userId", review.createdBy);
+  // store API data
+  const [transitScore, setTransitScore] = useState(null);
 
   // fetch favorite number from firestore
   useEffect(() => {
@@ -47,7 +58,7 @@ export default function Detail({ route }) {
     return () => {
       unsubscribe();
     };
-  }, [review.id]);
+  }, [favorite]);
 
   // fetch comments from firestore
   useEffect(() => {
@@ -74,22 +85,84 @@ export default function Detail({ route }) {
     };
   }, [review.id]);
 
+  // get walkscore API
+  useEffect(() => {
+    const fetchTransitScore = async () => {
+      try {
+        const formattedLat = parseFloat(review.location.latitude).toFixed(4);
+        const formattedLon = parseFloat(review.location.longitude).toFixed(4);
+
+        if (
+          formattedLat &&
+          formattedLon &&
+          review.address &&
+          review.city &&
+          review.postCode
+        ) {
+          const fullAddress = `${review.address}, ${review.city}, ${review.postCode}`;
+          const encodedAddress = encodeURIComponent(fullAddress);
+
+          let url = `https://api.walkscore.com/score?format=json&address=${encodedAddress}&lat=${formattedLat}&lon=${formattedLon}&transit=1&bike=1&wsapikey=${WALKSCORE_API}`;
+
+          const response = await fetch(url);
+
+          const data = await response.json();
+
+          setTransitScore(data.walkscore);
+        }
+      } catch (error) {
+        console.log("This review doesn't have a valid location.");
+      }
+    };
+
+    fetchTransitScore();
+  }, [review]);
+
   function updateFavorite() {
     let updatedFavorite = favorite;
+    let updatedFavoritedBy = Array.isArray(review.favoritedBy)
+      ? [...review.favoritedBy]
+      : [];
+
     if (isFavorite) {
       updatedFavorite -= 1;
+      updatedFavoritedBy = updatedFavoritedBy.filter(
+        (id) => id !== auth.currentUser.uid
+      );
     } else {
       updatedFavorite += 1;
+      updatedFavoritedBy.push(auth.currentUser.uid);
     }
     setIsFavorite(!isFavorite);
     setFavorite(updatedFavorite);
-    updateReview(review.id, { favorite: updatedFavorite });
+    updateReview(review.id, {
+      favorite: updatedFavorite,
+      favoritedBy: updatedFavoritedBy,
+    });
   }
 
-  const submitComment = () => {
+  const submitComment = async () => {
     if (newComment.trim()) {
-      addComment({ content: newComment, rating: commentRating }, review.id);
+      const reviewOwnerId = await addComment(
+        { content: newComment, rating: commentRating },
+        review.id
+      );
       setNewComment("");
+      setCommentRating("");
+
+      // Query the users collection to get the document of the review owner
+      const usersRef = collection(database, "users");
+      const queryRef = query(usersRef, where("userId", "==", review.createdBy));
+      const querySnapshot = await getDocs(queryRef);
+
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0];
+        const ownerPushToken = userDoc.data().pushToken;
+
+        if (ownerPushToken) {
+          sendCommentReceiveNotification(ownerPushToken);
+        }
+      }
     } else {
       Alert.alert("Validation Error", "Comment is required.");
     }
@@ -105,12 +178,23 @@ export default function Detail({ route }) {
             <Ionicons style={styles.icon} name="home" size={15} />
             <Text style={styles.text}>Address: {review.address}</Text>
           </View>
-
-          {/* <View style={styles.locationDisplay}>
-            <View style={styles.map}>
-              <LocationManager userId={review.createdBy} />
+          <View style={styles.singleDisplay}>
+            <MaterialIcons name="directions-walk" size={15} />
+            <View style={{ flexDirection: "row" }}>
+              <Text style={styles.text}>
+                WalkScore(1-100): {transitScore ? transitScore : "  Not Found"}
+              </Text>
+              <Text> </Text>
+              <AntDesign
+                name="questioncircle"
+                size={15}
+                color="black"
+                onPress={() => {
+                  Linking.openURL("https://www.walkscore.com/how-it-works/");
+                }}
+              />
             </View>
-          </View> */}
+          </View>
 
           <View style={styles.infoDisplay}>
             <View style={styles.displayItem}>
@@ -203,7 +287,7 @@ export default function Detail({ route }) {
                 maxHeight={300}
                 labelField="label"
                 valueField="value"
-                placeholder="Select you rating(1-5)"
+                placeholder="Select your rating (1-5)"
                 value={commentRating}
                 onChange={(item) => {
                   setCommentRating(item.value);
@@ -211,12 +295,12 @@ export default function Detail({ route }) {
               />
             </View>
 
-            <View style={{ alignItems: "center" }}>
+            <View style={{ alignItems: "center", marginTop: 30 }}>
               <PressableButton
                 defaultStyle={{ width: "50%" }}
                 pressableFunction={submitComment}
               >
-                <Text style={{ fontSize: 18, color: "white" }}>
+                <Text style={{ fontSize: 18, color: ColorsHelper.white }}>
                   Add Comment
                 </Text>
               </PressableButton>
@@ -224,17 +308,27 @@ export default function Detail({ route }) {
 
             <View style={styles.commentDisplay}>
               <View style={styles.commentHeader}>
-                <Text style={{ fontSize: 18 }}>Recent Comments: </Text>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    color: ColorsHelper.headers,
+                    fontWeight: "bold",
+                  }}
+                >
+                  All Comments:{" "}
+                </Text>
               </View>
-              {comments.map((comment) => {
-                return (
-                  <CommentItem
-                    key={comment.stampId}
-                    commentData={comment}
-                    reviewData={review}
-                  />
-                );
-              })}
+              {comments
+                .sort((a, b) => b.likes - a.likes)
+                .map((comment) => {
+                  return (
+                    <CommentItem
+                      key={comment.stampId}
+                      commentData={comment}
+                      reviewData={review}
+                    />
+                  );
+                })}
             </View>
           </View>
         </View>
@@ -295,7 +389,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 14,
-    color: "#fff",
+    color: ColorsHelper.white,
   },
   locationDisplay: {
     alignItems: "center",
@@ -313,14 +407,16 @@ const styles = StyleSheet.create({
   commentText: {
     // fontWeight: "bold",
     fontSize: 18,
-    marginTop: 15,
+    fontWeight: "bold",
+    marginTop: 20,
     marginBottom: 6,
-    marginLeft: 15,
+    marginLeft: 10,
     marginRight: 15,
+    color: ColorsHelper.headers,
   },
   commentInput: {
     height: 80,
-    borderColor: "gray",
+    borderColor: ColorsHelper.gray,
     borderWidth: 1,
     borderRadius: 5,
     margin: 10,
@@ -333,21 +429,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 15,
+    marginTop: 15,
   },
   dropdownRating: {
     margin: 5,
     height: 40,
     borderRadius: 5,
-    borderBottomColor: "gray",
+    borderBottomColor: ColorsHelper.gray,
     borderBottomWidth: 0.8,
-    width: "55%",
+    width: "75%",
   },
   placeholderStyle: {
-    color: "gray",
+    color: ColorsHelper.gray,
     textAlign: "center",
   },
   commentDisplay: {
     marginTop: 20,
     padding: 15,
+  },
+  commentHeader: {
+    marginBottom: 15,
+    marginTop: 30,
   },
 });

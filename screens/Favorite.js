@@ -5,20 +5,27 @@ import ReviewItem from "../components/ReviewItem";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { database } from "../Firebase/firebase-setup";
 import ColorsHelper from "../components/ColorsHelper";
+import { auth } from "../Firebase/firebase-setup";
 
 export default function Favorite({ navigation }) {
   const [favoriteReviews, setFavoriteReviews] = useState([]);
 
   useEffect(() => {
     const reviewsRef = collection(database, "reviews");
-    const q = query(reviewsRef, where("favorite", ">=", 0));
+    const q = query(
+      reviewsRef,
+      where("favoritedBy", "array-contains", auth.currentUser.uid)
+    );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const reviewsArray = [];
       querySnapshot.forEach((doc) => {
-        reviewsArray.push({ ...doc.data(), id: doc.id });
+        const reviewData = { ...doc.data(), id: doc.id };
+        if (reviewData.isVisible) {
+          reviewsArray.push(reviewData);
+        }
       });
-      setFavoriteReviews(reviewsArray);
+      setFavoriteReviews(reviewsArray.reverse());
     });
 
     return () => {

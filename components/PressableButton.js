@@ -22,7 +22,7 @@ export default function PressableButton({
 
 const styles = StyleSheet.create({
   styleByDefault: {
-    backgroundColor: ColorsHelper.buttonDefault,
+    backgroundColor: ColorsHelper.headers,
     padding: 5,
     borderRadius: 5,
     width: 110,

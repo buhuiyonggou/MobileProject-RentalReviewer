@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -16,13 +15,38 @@ import Post from "./screens/Post";
 import Me from "./screens/Me";
 import Detail from "./screens/Detail";
 import Map from "./screens/Map";
+import UpdateComment from "./screens/UpdateComment";
+import * as Notifications from "expo-notifications";
 import ColorsHelper from "./components/ColorsHelper";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function App() {
   const [isUserLoggedin, setIsUserLoggedIn] = useState(false);
+  const navigationRef = React.createRef();
+
+  const notificationListener = useRef();
+
+  useEffect(() => {
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
+        console.log("notification listener ", notification);
+      });
+
+    return () => {
+      Notifications.removeNotificationSubscription(
+        notificationListener.current
+      );
+    };
+  }, []);
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -132,14 +156,13 @@ export default function App() {
       />
       <Stack.Screen name="Detail" component={Detail} />
       <Stack.Screen name="Map" component={Map} />
+      <Stack.Screen name="UpdateComment" component={UpdateComment} />
     </Stack.Navigator>
   );
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       {isUserLoggedin ? <MainStack /> : <AuthStack />}
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({});

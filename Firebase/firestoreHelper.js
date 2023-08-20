@@ -24,6 +24,7 @@ export async function addReview(review) {
       const docRef = await addDoc(collection(database, "reviews"), {
         ...review,
         createdBy: user.uid,
+        favoritedBy: [],
       });
       return docRef;
     } catch (e) {
@@ -45,14 +46,25 @@ export async function addComment(comment, reviewId) {
         reviewId: reviewId,
         likes: 0,
         stampId: Date.now(),
+        likedBy: [],
       });
       console.log("Comment added with ID: ", docRef.id);
-      // return docRef;
+
+      const reviewDoc = await getDoc(doc(database, "reviews", reviewId));
+      if (reviewDoc.exists()) {
+        const reviewData = reviewDoc.data();
+        return reviewData.createdBy;
+      } else {
+        console.error("No such review exists!");
+        return null;
+      }
     } catch (e) {
       console.error("Error adding comment: ", e);
+      return null;
     }
   } else {
     console.error("User is not logged in");
+    return null;
   }
 }
 
