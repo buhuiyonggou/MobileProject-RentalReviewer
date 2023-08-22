@@ -27,7 +27,7 @@ import { terms, ratings, policies } from "../components/DropDownData";
 import LocationManager from "../components/LocationManager";
 
 export default function PostReview(props) {
-  const navigation = props.navigation;
+  const { navigation, route } = props;
   const [address, setAddress] = useState("");
   const [postCode, setPostCode] = useState("");
   const [city, setCity] = useState("");
@@ -43,6 +43,12 @@ export default function PostReview(props) {
   const [getReviewId, setReviewId] = useState(null);
   const [resetLocation, setResetLocation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (props.route.params?.selectedAddress) {
+      setAddress(props.route.params.selectedAddress);
+    }
+  }, [route]);
 
   const validatePost = () => {
     if (
@@ -190,6 +196,7 @@ export default function PostReview(props) {
           <LocationManager
             handleLocationUpdate={handleLocationUpdate}
             resetSignal={resetLocation}
+            onAddressFound={(newAddress) => setAddress(newAddress)}
           />
         </View>
       </View>

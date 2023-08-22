@@ -21,7 +21,6 @@ export async function sendPostingNotification() {
       content: {
         title: "New Post Notification",
         body: "Wanna try to post your review?",
-        // data: { review: reviewId },
       },
       trigger: { seconds: 3 },
     });

@@ -4,13 +4,17 @@ import * as Location from "expo-location";
 import { MAPS_API_KEY } from "@env";
 import { useNavigation } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
-import { getReviewInfo } from "../Firebase/firestoreHelper";
 import ColorsHelper from "./ColorsHelper";
 import PressableButton from "./PressableButton";
 
 const screenWidth = Dimensions.get("window").width;
-export default function LocationManager({ handleLocationUpdate, resetSignal }) {
+export default function LocationManager({
+  handleLocationUpdate,
+  resetSignal,
+  onAddressFound,
+}) {
   const [location, setLocation] = useState(null);
+  const [recordAddress, setRecordAddress] = useState(null);
 
   const navigation = useNavigation();
   const route = useRoute();
@@ -53,10 +57,20 @@ export default function LocationManager({ handleLocationUpdate, resetSignal }) {
         latitude: currentLocation.coords.latitude,
         longitude: currentLocation.coords.longitude,
       });
+      const address = await Location.reverseGeocodeAsync({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude,
+      });
+      setRecordAddress(address[0].name);
+
+      if (recordAddress) {
+        onAddressFound(address[0].name);
+      }
     } catch (err) {
       console.log("get location ", err);
     }
   }
+
   const mapHandler = () => {
     // //  if location varibale is not null (locate user handler has been called)
     // // pass the location as route paramter to Map.js
