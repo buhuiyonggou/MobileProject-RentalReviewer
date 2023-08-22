@@ -181,6 +181,7 @@ export default function PostReview(props) {
           onChangeText={setAddress}
           value={address}
           placeholder="e.g. 1234 Main St."
+          autoCapitalize="none"
         />
       </View>
 

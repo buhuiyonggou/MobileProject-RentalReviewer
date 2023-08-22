@@ -13,6 +13,7 @@ import { auth } from "../Firebase/firebase-setup";
 import { updatePassword } from "firebase/auth";
 import PressableButton from "../components/PressableButton";
 import { updateUser } from "../Firebase/firestoreHelper";
+import { sendPostingNotification } from "../components/LocalNotificationManager";
 import EdiableReviews from "../components/EdiableReviews";
 import ColorsHelper from "../components/ColorsHelper";
 
@@ -30,6 +31,8 @@ const Me = ({ navigation }) => {
   const [gender, setGender] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [password, setPassword] = useState("");
+  // send notification
+  const [ifNotification, setIfNotification] = useState(false);
 
   const dateRegex =
     /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)$/;
@@ -57,8 +60,6 @@ const Me = ({ navigation }) => {
       setNickName(userData.nickName);
       setGender(userData.gender);
       setDateOfBirth(userData.dateOfBirth);
-      // setUser(userData);
-      // console.log("user from query", userData);
     } catch (error) {
       console.log("Error fetching user data:", error);
     }
@@ -86,10 +87,18 @@ const Me = ({ navigation }) => {
     const unsubscribe = navigation.addListener("focus", () => {
       fetchUserData();
       fetchReviews();
+      setIfNotification(true);
     });
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (ifNotification && reviewList.length === 0) {
+      sendPostingNotification();
+      setIfNotification(false);
+    }
+  }, [reviewList]);
 
   async function handleUserInfoEdit(updateField, toggleEditFunction) {
     try {

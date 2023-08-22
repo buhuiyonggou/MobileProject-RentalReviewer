@@ -1,5 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  useNavigationContainerRef,
+} from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -31,9 +34,9 @@ Notifications.setNotificationHandler({
 
 export default function App() {
   const [isUserLoggedin, setIsUserLoggedIn] = useState(false);
-  const navigationRef = React.createRef();
-
+  const responseListener = useRef();
   const notificationListener = useRef();
+  const navigationRef = useNavigationContainerRef();
 
   useEffect(() => {
     notificationListener.current =
@@ -41,10 +44,18 @@ export default function App() {
         console.log("notification listener ", notification);
       });
 
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        if (navigationRef.current) {
+          navigationRef.current.navigate("MainTabs", { screen: "Post" });
+        }
+      });
+
     return () => {
       Notifications.removeNotificationSubscription(
         notificationListener.current
       );
+      Notifications.removeNotificationSubscription(responseListener.current);
     };
   }, []);
 

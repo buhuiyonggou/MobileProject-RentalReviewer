@@ -50,6 +50,7 @@ export default function Login({ navigation }) {
         style={styles.input}
         value={email}
         onChangeText={(newText) => setEmail(newText)}
+        autoCapitalize="none"
       />
       <Text style={styles.label}>Password</Text>
       <TextInput
@@ -58,6 +59,7 @@ export default function Login({ navigation }) {
         placeholder="Password"
         value={password}
         onChangeText={(newText) => setPassword(newText)}
+        autoCapitalize="none"
       />
       <View style={styles.buttonContainer}>
         <PressableButton

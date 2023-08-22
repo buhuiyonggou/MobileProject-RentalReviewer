@@ -74,6 +74,7 @@ export default function Signup({ navigation }) {
         placeholder="Email"
         value={email}
         onChangeText={(newText) => setEmail(newText)}
+        autoCapitalize="none"
       />
       <Text style={styles.label}>Password</Text>
       <TextInput
@@ -82,6 +83,7 @@ export default function Signup({ navigation }) {
         placeholder="Password"
         value={password}
         onChangeText={(newText) => setPassword(newText)}
+        autoCapitalize="none"
       />
       <Text style={styles.label}>Confirm Password</Text>
       <TextInput
@@ -90,6 +92,7 @@ export default function Signup({ navigation }) {
         placeholder="Confirm Password"
         value={confirmPassword}
         onChangeText={(newText) => setConfirmPassword(newText)}
+        autoCapitalize="none"
       />
 
       <View style={styles.buttonContainer}>
