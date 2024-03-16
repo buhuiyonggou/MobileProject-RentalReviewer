@@ -1,6 +1,3 @@
-# Rental Review
-
-
 # Rental Reviewer
 Welcome to **Rental Reviewer**. Our app designed to assist Vancouver renters in locating suitable properties and offers features like browsing posts, saving favorite listings, locating addresses via Google Maps, and receiving notifications for new comments.
 
