@@ -13,16 +13,15 @@ Welcome to **Rental Reviewer**. Our app designed to assist Vancouver renters in 
 https://www.youtube.com/watch?v=wihyv3EsQr4
 
 ## How to Run
-
 Prepare keys/id as below: 
-apiKey
-authDomain
-projectId
-storageBucket
-messagingSenderId
-appId
-MAPS_API_KEY
-WALKSCORE_API
+- `apiKey`
+- `authDomain`
+- `projectId`
+- `storageBucket`
+- `messagingSenderId`
+- `appId`
+- `MAPS_API_KEY 
+- `WALKSCORE_API`
 
 Run the app through expo
 ### npx expo start
