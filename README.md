@@ -20,7 +20,7 @@ Prepare keys/id as below:
 - `storageBucket`
 - `messagingSenderId`
 - `appId`
-- `MAPS_API_KEY 
+- `MAPS_API_KEY`
 - `WALKSCORE_API`
 
 Run the app through expo
